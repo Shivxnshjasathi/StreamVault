@@ -105,6 +105,158 @@
             100% { transform: rotate(360deg); }
         }
 
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-hover);
+            transform: scale(0.9) translateY(20px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid var(--border-color);
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .modal-body {
+            margin-bottom: 2rem;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .form-help {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+        }
+
+        .join-type-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .join-type-option {
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .join-type-option:hover {
+            border-color: var(--accent-primary);
+            transform: translateY(-2px);
+        }
+
+        .join-type-option.selected {
+            border-color: var(--accent-primary);
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .join-type-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .join-type-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .join-type-desc {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
         /* Header */
         .header {
             background: var(--bg-glass);
@@ -441,12 +593,18 @@
             left: 100%;
         }
 
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
         .btn-primary {
             background: linear-gradient(135deg, var(--accent-primary) 0%, #764ba2 100%);
             color: white;
         }
 
-        .btn-primary:hover {
+        .btn-primary:hover:not(:disabled) {
             transform: translateY(-3px);
             box-shadow: 0 15px 30px rgba(102, 126, 234, 0.4);
         }
@@ -457,7 +615,7 @@
             border: 2px solid var(--border-color);
         }
 
-        .btn-secondary:hover {
+        .btn-secondary:hover:not(:disabled) {
             background: var(--border-color);
             transform: translateY(-2px);
             box-shadow: var(--shadow);
@@ -468,7 +626,7 @@
             color: white;
         }
 
-        .btn-success:hover {
+        .btn-success:hover:not(:disabled) {
             transform: translateY(-3px);
             box-shadow: 0 15px 30px rgba(16, 185, 129, 0.4);
         }
@@ -478,7 +636,7 @@
             color: white;
         }
 
-        .btn-danger:hover {
+        .btn-danger:hover:not(:disabled) {
             transform: translateY(-3px);
             box-shadow: 0 15px 30px rgba(239, 68, 68, 0.4);
         }
@@ -926,6 +1084,19 @@
                 flex-direction: column;
                 align-items: flex-start;
             }
+
+            .modal {
+                width: 95%;
+                padding: 1.5rem;
+            }
+
+            .modal-footer {
+                flex-direction: column;
+            }
+
+            .join-type-selector {
+                grid-template-columns: 1fr;
+            }
         }
 
         @media (max-width: 480px) {
@@ -961,6 +1132,14 @@
 
             .video-placeholder-icon {
                 font-size: 3rem;
+            }
+
+            .modal {
+                padding: 1rem;
+            }
+
+            .modal-title {
+                font-size: 1.3rem;
             }
         }
 
@@ -1000,6 +1179,65 @@
     <!-- Loading Screen -->
     <div class="loading" id="loading">
         <div class="spinner"></div>
+    </div>
+
+    <!-- Name Input Modal -->
+    <div class="modal-overlay" id="nameModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Join Secure Stream</h2>
+                <p class="modal-subtitle">Enter your details to join the encrypted video session</p>
+            </div>
+            <div class="modal-body">
+                <form id="joinForm">
+                    <div class="form-group">
+                        <label for="participantName" class="form-label">Your Name</label>
+                        <input 
+                            type="text" 
+                            id="participantName" 
+                            class="form-input" 
+                            placeholder="Enter your full name"
+                            required
+                            maxlength="50"
+                        />
+                        <div class="form-help">This name will be visible to other participants</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Join as</label>
+                        <div class="join-type-selector">
+                            <div class="join-type-option" data-type="host">
+                                <div class="join-type-icon">🎤</div>
+                                <div class="join-type-title">Co-Host</div>
+                                <div class="join-type-desc">Full access with camera & mic</div>
+                            </div>
+                            <div class="join-type-option" data-type="audience">
+                                <div class="join-type-icon">👁️</div>
+                                <div class="join-type-title">Viewer</div>
+                                <div class="join-type-desc">Watch-only mode</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group" id="streamIdGroup" style="display: none;">
+                        <label for="modalStreamId" class="form-label">Stream ID</label>
+                        <input 
+                            type="text" 
+                            id="modalStreamId" 
+                            class="form-input" 
+                            placeholder="Enter stream identifier"
+                        />
+                        <div class="form-help">Get this ID from the stream host</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancelJoin">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmJoin" disabled>
+                    <span id="joinButtonText">Join Stream</span>
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- Header -->
@@ -1151,7 +1389,7 @@
                     <div class="meeting-details">
                         <div class="detail-item">
                             <span class="detail-icon">👥</span>
-                            <span>0 Participants</span>
+                            <span id="participantCount">0 Participants</span>
                         </div>
                         <div class="detail-item">
                             <span class="detail-icon">🔒</span>
@@ -1273,17 +1511,174 @@
             }
         }
 
+        // Name Modal Management
+        class NameModal {
+            constructor() {
+                this.modal = document.getElementById('nameModal');
+                this.nameInput = document.getElementById('participantName');
+                this.streamIdInput = document.getElementById('modalStreamId');
+                this.streamIdGroup = document.getElementById('streamIdGroup');
+                this.confirmBtn = document.getElementById('confirmJoin');
+                this.cancelBtn = document.getElementById('cancelJoin');
+                this.joinButtonText = document.getElementById('joinButtonText');
+                this.joinTypeOptions = document.querySelectorAll('.join-type-option');
+                
+                this.currentAction = null;
+                this.selectedType = null;
+                this.init();
+            }
+
+            init() {
+                this.bindEvents();
+            }
+
+            show(action, streamId = '') {
+                this.currentAction = action;
+                this.modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                
+                // Reset form
+                this.nameInput.value = '';
+                this.streamIdInput.value = streamId;
+                this.selectedType = null;
+                this.updateJoinButton();
+                
+                // Show/hide stream ID field based on action
+                if (action === 'create') {
+                    this.streamIdGroup.style.display = 'none';
+                    this.joinButtonText.textContent = 'Create Stream';
+                    // Auto-select host for create
+                    this.selectJoinType('host');
+                } else {
+                    this.streamIdGroup.style.display = 'block';
+                    this.joinButtonText.textContent = 'Join Stream';
+                    this.clearJoinTypeSelection();
+                }
+                
+                // Focus name input
+                setTimeout(() => this.nameInput.focus(), 100);
+            }
+
+            hide() {
+                this.modal.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+
+            selectJoinType(type) {
+                this.selectedType = type;
+                this.joinTypeOptions.forEach(option => {
+                    option.classList.remove('selected');
+                    if (option.dataset.type === type) {
+                        option.classList.add('selected');
+                    }
+                });
+                this.updateJoinButton();
+            }
+
+            clearJoinTypeSelection() {
+                this.selectedType = null;
+                this.joinTypeOptions.forEach(option => {
+                    option.classList.remove('selected');
+                });
+                this.updateJoinButton();
+            }
+
+            updateJoinButton() {
+                const nameValid = this.nameInput.value.trim().length >= 2;
+                const typeSelected = this.selectedType !== null;
+                const streamIdValid = this.currentAction === 'create' || this.streamIdInput.value.trim().length > 0;
+                
+                this.confirmBtn.disabled = !(nameValid && typeSelected && streamIdValid);
+            }
+
+            getFormData() {
+                return {
+                    name: this.nameInput.value.trim(),
+                    type: this.selectedType,
+                    streamId: this.streamIdInput.value.trim(),
+                    action: this.currentAction
+                };
+            }
+
+            bindEvents() {
+                // Cancel button
+                this.cancelBtn.addEventListener('click', () => this.hide());
+                
+                // Confirm button
+                this.confirmBtn.addEventListener('click', () => {
+                    const data = this.getFormData();
+                    this.hide();
+                    window.meetingManager.handleJoinConfirm(data);
+                });
+
+                // Name input validation
+                this.nameInput.addEventListener('input', () => this.updateJoinButton());
+                this.streamIdInput.addEventListener('input', () => this.updateJoinButton());
+
+                // Join type selection
+                this.joinTypeOptions.forEach(option => {
+                    option.addEventListener('click', () => {
+                        this.selectJoinType(option.dataset.type);
+                    });
+                });
+
+                // Close on outside click
+                this.modal.addEventListener('click', (e) => {
+                    if (e.target === this.modal) {
+                        this.hide();
+                    }
+                });
+
+                // Enter key to submit
+                this.nameInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter' && !this.confirmBtn.disabled) {
+                        this.confirmBtn.click();
+                    }
+                });
+            }
+        }
+
         // Meeting Management
         class MeetingManager {
             constructor() {
                 this.startTime = null;
                 this.durationInterval = null;
                 this.participantCount = 0;
+                this.currentUser = null;
                 this.init();
             }
 
             init() {
                 this.bindEvents();
+            }
+
+            handleJoinConfirm(data) {
+                this.currentUser = {
+                    name: data.name,
+                    type: data.type,
+                    streamId: data.streamId
+                };
+
+                // Show appropriate message
+                const textDiv = document.getElementById('textDiv');
+                if (data.action === 'create') {
+                    textDiv.innerHTML = `<p>🎥 Creating secure stream for <strong>${data.name}</strong> as Host...</p>`;
+                } else {
+                    textDiv.innerHTML = `<p>🔗 Joining stream <strong>${data.streamId}</strong> as <strong>${data.name}</strong> (${data.type === 'host' ? 'Co-Host' : 'Viewer'})...</p>`;
+                }
+
+                // Simulate connection process
+                setTimeout(() => {
+                    this.startMeeting();
+                    this.addParticipant(data.name, data.type === 'host', data.type === 'host');
+                    
+                    // Hide join screen and show meeting
+                    document.getElementById('join-screen').style.display = 'none';
+                    document.getElementById('grid-screen').style.display = 'block';
+                    
+                    // Update text div
+                    textDiv.innerHTML = `<p>✅ Successfully connected to secure stream</p>`;
+                }, 2000);
             }
 
             startMeeting() {
@@ -1300,6 +1695,25 @@
                     this.durationInterval = null;
                 }
                 this.startTime = null;
+                this.currentUser = null;
+                this.participantCount = 0;
+                
+                // Show join screen and hide meeting
+                document.getElementById('join-screen').style.display = 'block';
+                document.getElementById('grid-screen').style.display = 'none';
+                
+                // Clear video container
+                const container = document.getElementById('videoContainer');
+                container.innerHTML = `
+                    <div class="video-placeholder">
+                        <div class="video-placeholder-icon">🎬</div>
+                        <h3>Waiting for participants...</h3>
+                        <p>Video streams will appear here once participants join the secure session</p>
+                    </div>
+                `;
+                
+                // Update text div
+                document.getElementById('textDiv').innerHTML = '<p>👋 Left the meeting</p>';
             }
 
             updateDuration() {
@@ -1328,9 +1742,9 @@
             }
 
             updateParticipantCount() {
-                const countEl = document.querySelector('.detail-item span:contains("Participants")');
+                const countEl = document.getElementById('participantCount');
                 if (countEl) {
-                    countEl.textContent = `${this.participantCount} Participants`;
+                    countEl.textContent = `${this.participantCount} Participant${this.participantCount !== 1 ? 's' : ''}`;
                 }
             }
 
@@ -1358,30 +1772,38 @@
             }
 
             bindEvents() {
-                // Simulate adding participants for demo
+                // Create stream button
                 document.getElementById('createLiveStreamBtn')?.addEventListener('click', () => {
-                    setTimeout(() => {
-                        this.startMeeting();
-                        this.addParticipant('You (Host)', true, true);
-                    }, 1000);
+                    window.nameModal.show('create');
                 });
 
+                // Join buttons
                 document.getElementById('joinHostBtn')?.addEventListener('click', () => {
-                    setTimeout(() => {
-                        this.startMeeting();
-                        this.addParticipant('You (Co-Host)', true, true);
-                    }, 1000);
+                    const streamId = document.getElementById('streamIdText').value.trim();
+                    window.nameModal.show('join', streamId);
+                    // Pre-select host type
+                    setTimeout(() => window.nameModal.selectJoinType('host'), 100);
                 });
 
                 document.getElementById('joinAudienceBtn')?.addEventListener('click', () => {
-                    setTimeout(() => {
-                        this.startMeeting();
-                        this.addParticipant('You (Viewer)', false, false);
-                    }, 1000);
+                    const streamId = document.getElementById('streamIdText').value.trim();
+                    window.nameModal.show('join', streamId);
+                    // Pre-select audience type
+                    setTimeout(() => window.nameModal.selectJoinType('audience'), 100);
                 });
 
+                // Leave button
                 document.getElementById('leaveBtn')?.addEventListener('click', () => {
                     this.endMeeting();
+                });
+
+                // Stream ID input change
+                document.getElementById('streamIdText')?.addEventListener('input', (e) => {
+                    const hasValue = e.target.value.trim().length > 0;
+                    const joinButtons = document.querySelectorAll('#joinHostBtn, #joinAudienceBtn');
+                    joinButtons.forEach(btn => {
+                        btn.disabled = !hasValue;
+                    });
                 });
             }
         }
@@ -1517,7 +1939,8 @@
         document.addEventListener('DOMContentLoaded', () => {
             new ThemeManager();
             new MobileMenu();
-            new MeetingManager();
+            window.nameModal = new NameModal();
+            window.meetingManager = new MeetingManager();
             new ScrollAnimations();
             new LoadingScreen();
             new ButtonAnimations();
@@ -1540,6 +1963,15 @@
             featureIcons.forEach((icon, index) => {
                 icon.style.animation = `float 3s ease-in-out infinite`;
                 icon.style.animationDelay = `${index * 0.5}s`;
+            });
+
+            // Initialize join button states
+            const streamIdInput = document.getElementById('streamIdText');
+            const joinButtons = document.querySelectorAll('#joinHostBtn, #joinAudienceBtn');
+            
+            // Disable join buttons initially
+            joinButtons.forEach(btn => {
+                btn.disabled = true;
             });
         });
 
