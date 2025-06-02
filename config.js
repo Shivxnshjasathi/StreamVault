@@ -1,0 +1,1 @@
+TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcGlrZXkiOiI4NTMxNjllNy0zNGNiLTQwYTQtOWMxOC1mOTEzMTg5MjA2ZjAiLCJwZXJtaXNzaW9ucyI6WyJhbGxvd19qb2luIl0sImlhdCI6MTc0ODg5NDQ4NiwiZXhwIjoxNzgwNDMwNDg2fQ.6mkfNjETIhCXkSDAj48cjX9ZqnHG1lgxWj0fBwjsri0"; // You can get the token from the VideoSDK dashboard(app.videosdk.live)

@@ -1,0 +1,2252 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StreamVault - Secure Web3 Video Streaming</title>
+    <style>
+        :root {
+            /* Light Theme */
+            --bg-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f8fafc;
+            --bg-card: rgba(255, 255, 255, 0.1);
+            --bg-glass: rgba(255, 255, 255, 0.1);
+            --text-primary: #1f2937;
+            --text-secondary: #64748b;
+            --text-on-primary: #ffffff;
+            --border-color: #e5e7eb;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            --shadow-hover: 0 20px 40px rgba(0, 0, 0, 0.15);
+            --accent-primary: #667eea;
+            --accent-success: #10b981;
+            --accent-danger: #ef4444;
+            --backdrop-blur: blur(10px);
+            --meeting-bg: #f1f5f9;
+            --video-border: #e2e8f0;
+        }
+
+        [data-theme="dark"] {
+            /* Dark Theme */
+            --bg-primary: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            --bg-secondary: #0f172a;
+            --bg-tertiary: #1e293b;
+            --bg-card: rgba(30, 41, 59, 0.8);
+            --bg-glass: rgba(30, 41, 59, 0.3);
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-on-primary: #ffffff;
+            --border-color: #334155;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            --shadow-hover: 0 20px 40px rgba(0, 0, 0, 0.4);
+            --accent-primary: #818cf8;
+            --accent-success: #34d399;
+            --accent-danger: #f87171;
+            --backdrop-blur: blur(15px);
+            --meeting-bg: #1e293b;
+            --video-border: #475569;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: var(--bg-primary);
+            min-height: 100vh;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Loading Animation */
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            opacity: 1;
+            transition: opacity 0.5s ease;
+        }
+
+        .loading.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Header */
+        .header {
+            background: var(--bg-glass);
+            backdrop-filter: var(--backdrop-blur);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--text-on-primary);
+            text-decoration: none;
+            transition: transform 0.3s ease;
+        }
+
+        .logo:hover {
+            transform: scale(1.05);
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--text-on-primary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--text-on-primary);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            background: var(--bg-glass);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            padding: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.05);
+        }
+
+        .theme-icon {
+            font-size: 1.2rem;
+            transition: transform 0.3s ease;
+        }
+
+        .theme-toggle.active .theme-icon {
+            transform: rotate(180deg);
+        }
+
+        /* Mobile Menu */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-on-primary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .mobile-menu-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: var(--bg-glass);
+            backdrop-filter: var(--backdrop-blur);
+            z-index: 999;
+            padding: 2rem;
+            transform: translateX(-100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .mobile-menu.active {
+            transform: translateX(0);
+        }
+
+        .mobile-menu-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .mobile-menu-close {
+            background: none;
+            border: none;
+            color: var(--text-on-primary);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .mobile-nav-links {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .mobile-nav-links a {
+            color: var(--text-on-primary);
+            text-decoration: none;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            padding: 1rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 4rem 0;
+            color: var(--text-on-primary);
+        }
+
+        .hero h1 {
+            font-size: clamp(2.5rem, 5vw, 3.5rem);
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #fff, #e0e7ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .hero p {
+            font-size: clamp(1.1rem, 2.5vw, 1.3rem);
+            margin-bottom: 2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            backdrop-filter: var(--backdrop-blur);
+            padding: 2rem;
+            border-radius: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: fadeInUp 0.8s ease-out calc(0.4s + var(--delay, 0s)) both;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            animation: bounce 2s infinite;
+            animation-delay: var(--delay, 0s);
+        }
+
+        .feature-card h3 {
+            margin-bottom: 1rem;
+            color: var(--text-on-primary);
+        }
+
+        .feature-card p {
+            opacity: 0.9;
+            color: var(--text-on-primary);
+        }
+
+        /* Main Content */
+        .main-content {
+            background: var(--bg-secondary);
+            margin: 2rem 0;
+            border-radius: 25px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+
+        .content-section {
+            padding: clamp(2rem, 5vw, 3rem);
+        }
+
+        .section-title {
+            font-size: clamp(1.8rem, 4vw, 2rem);
+            margin-bottom: 2rem;
+            text-align: center;
+            color: var(--text-primary);
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        /* Join Screen Styles */
+        #join-screen {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            padding: clamp(2rem, 5vw, 3rem);
+            border-radius: 20px;
+            margin: 2rem 0;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            animation: slideInUp 0.8s ease-out;
+        }
+
+        .join-options {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .create-stream {
+            text-align: center;
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+        }
+
+        .divider {
+            text-align: center;
+            position: relative;
+            margin: 2rem 0;
+            animation: fadeInUp 0.8s ease-out 0.4s both;
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--border-color);
+        }
+
+        .divider span {
+            background: var(--bg-tertiary);
+            padding: 0 1rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .join-existing {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            animation: fadeInUp 0.8s ease-out 0.6s both;
+        }
+
+        .join-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        /* Button Styles */
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            min-width: 120px;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-primary) 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--accent-success) 0%, #059669 100%);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--accent-danger) 0%, #dc2626 100%);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(239, 68, 68, 0.4);
+        }
+
+        /* Input Styles */
+        .input-group {
+            margin-bottom: 1rem;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-1px);
+        }
+
+        /* Enhanced Grid Screen Styles */
+        #grid-screen {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            padding: 0;
+            margin: 2rem 0;
+            border-radius: 25px;
+            box-shadow: var(--shadow);
+            animation: slideInUp 0.8s ease-out;
+            overflow: hidden;
+        }
+
+        .meeting-header {
+            background: var(--bg-tertiary);
+            padding: 2rem;
+            border-bottom: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        #heading {
+            color: var(--text-primary);
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            animation: pulse 2s infinite;
+        }
+
+        .meeting-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--accent-danger);
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .live-indicator {
+            width: 8px;
+            height: 8px;
+            background: var(--accent-danger);
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        .meeting-controls {
+            background: var(--bg-tertiary);
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        #controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .control-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        /* Enhanced Video Container */
+        .video-section {
+            padding: 2rem;
+            background: var(--meeting-bg);
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #videoContainer {
+            width: 100%;
+            max-width: 1000px;
+            background: var(--bg-secondary);
+            border: 2px solid var(--video-border);
+            border-radius: 20px;
+            min-height: 450px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow);
+        }
+
+        #videoContainer:hover {
+            border-color: var(--accent-primary);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .video-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: var(--text-secondary);
+            background: var(--bg-tertiary);
+            border-radius: 15px;
+            padding: 2rem;
+            border: 2px dashed var(--border-color);
+            transition: all 0.3s ease;
+            min-height: 200px;
+        }
+
+        .video-placeholder:hover {
+            border-color: var(--accent-primary);
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .video-placeholder-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.6;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .video-placeholder h3 {
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+            font-size: 1.2rem;
+        }
+
+        .video-placeholder p {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        /* Participant Video Slots */
+        .video-slot {
+            background: var(--bg-tertiary);
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            min-height: 200px;
+            border: 2px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .video-slot:hover {
+            border-color: var(--accent-primary);
+            transform: scale(1.02);
+        }
+
+        .video-slot video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .participant-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.7));
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .participant-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .participant-status {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .status-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+        }
+
+        .mic-on { background: var(--accent-success); }
+        .mic-off { background: var(--accent-danger); }
+        .cam-on { background: var(--accent-success); }
+        .cam-off { background: var(--accent-danger); }
+
+        /* Meeting Info Panel */
+        .meeting-info {
+            background: var(--bg-tertiary);
+            padding: 1.5rem 2rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .meeting-details {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .detail-icon {
+            font-size: 1rem;
+        }
+
+        /* Text Messages */
+        #textDiv {
+            background: var(--bg-card);
+            backdrop-filter: var(--backdrop-blur);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 12px;
+            color: var(--text-on-primary);
+            min-height: 50px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        /* Security Badge */
+        .security-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--accent-success);
+            padding: 0.8rem 1.5rem;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin: 1rem 0;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            animation: fadeInUp 0.8s ease-out 0.6s both;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: rgba(255,255,255,0.8);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .footer p {
+            margin-bottom: 1rem;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .mobile-menu {
+                display: block;
+            }
+
+            .hero {
+                padding: 2rem 0;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+                margin: 2rem 0;
+            }
+
+            .join-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            #controls {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .control-group {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .content-section {
+                padding: 1.5rem;
+            }
+
+            #join-screen {
+                padding: 1.5rem;
+                margin: 1rem 0;
+            }
+
+            .container {
+                padding: 0 15px;
+            }
+
+            #videoContainer {
+                grid-template-columns: 1fr;
+                min-height: 300px;
+                padding: 1rem;
+            }
+
+            .meeting-header {
+                padding: 1.5rem;
+            }
+
+            .meeting-controls {
+                padding: 1rem;
+            }
+
+            .video-section {
+                padding: 1rem;
+            }
+
+            .meeting-details {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .meeting-info {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .stream-section {
+                padding: 3rem 1rem;
+                justify-content: center;
+            }
+
+            .stream-options-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+                max-width: 100%;
+            }
+
+            .stream-card {
+                padding: 2rem;
+                margin: 0 auto;
+                max-width: 500px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .hero p {
+                font-size: 1rem;
+            }
+
+            .btn {
+                padding: 12px 20px;
+                font-size: 0.9rem;
+            }
+
+            .feature-card {
+                padding: 1.5rem;
+            }
+
+            .feature-icon {
+                font-size: 2.5rem;
+            }
+
+            #videoContainer {
+                min-height: 250px;
+            }
+
+            .video-placeholder {
+                padding: 1.5rem;
+                min-height: 150px;
+            }
+
+            .video-placeholder-icon {
+                font-size: 3rem;
+            }
+        }
+
+        /* Scroll animations */
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .scroll-reveal.revealed {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-tertiary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-primary);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #5a67d8;
+        }
+
+        /* Enhanced Full-Width Stream Section */
+        .stream-section-wrapper {
+            width: 100vw;
+            margin-left: calc(-50vw + 50%);
+            background: var(--bg-tertiary);
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stream-section {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: auto;
+        }
+
+        .stream-content {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        /* Stream Options Grid */
+        .stream-options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 3rem;
+            margin: 0 auto 3rem auto;
+            max-width: 1200px;
+            justify-content: center;
+            align-items: start;
+        }
+
+        /* Security Banner */
+        .security-banner {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-success));
+            border-radius: 20px;
+            padding: 2rem;
+            animation: slideInUp 0.8s ease-out 0.6s both;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .stream-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Animated Background Elements */
+        .bg-elements {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .floating-element {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-success));
+            border-radius: 50%;
+            opacity: 0.1;
+            animation: floatAround 8s ease-in-out infinite;
+            animation-delay: var(--delay);
+            left: var(--x);
+            top: var(--y);
+        }
+
+        @keyframes floatAround {
+            0%, 100% {
+                transform: translate(0, 0) scale(1);
+            }
+            25% {
+                transform: translate(30px, -20px) scale(1.1);
+            }
+            50% {
+                transform: translate(-20px, 30px) scale(0.9);
+            }
+            75% {
+                transform: translate(20px, 20px) scale(1.05);
+            }
+        }
+
+        /* Stream Header */
+        .stream-header {
+            text-align: center;
+            margin-bottom: 4rem;
+            animation: slideInDown 0.8s ease-out;
+        }
+
+        .stream-title {
+            font-size: clamp(2.5rem, 5vw, 3.5rem);
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+        }
+
+        .stream-subtitle {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .title-underline {
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-success));
+            margin: 0 auto;
+            border-radius: 2px;
+            animation: expandWidth 1s ease-out 0.5s both;
+        }
+
+        @keyframes expandWidth {
+            from { width: 0; }
+            to { width: 100px; }
+        }
+
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Stream Options Grid */
+        .stream-options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 3rem;
+            margin-bottom: 3rem;
+        }
+
+        .stream-card {
+            background: var(--bg-secondary);
+            border-radius: 25px;
+            padding: 3rem;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid var(--border-color);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: slideInUp 0.8s ease-out;
+            animation-fill-mode: both;
+        }
+
+        .create-card {
+            animation-delay: 0.2s;
+        }
+
+        .join-card {
+            animation-delay: 0.4s;
+        }
+
+        .stream-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--accent-primary);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .stream-card:hover .card-glow {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .card-glow {
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, var(--accent-primary) 0%, transparent 70%);
+            opacity: 0;
+            transition: all 0.6s ease;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .card-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Card Icons */
+        .card-icon {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .icon-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        .main-icon {
+            font-size: 4rem;
+            display: block;
+            animation: iconBounce 2s ease-in-out infinite;
+        }
+
+        .icon-particles {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .particle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: var(--accent-primary);
+            border-radius: 50%;
+            animation: particleFloat 3s ease-in-out infinite;
+        }
+
+        .particle:nth-child(1) {
+            animation-delay: 0s;
+            top: -30px;
+            left: -20px;
+        }
+
+        .particle:nth-child(2) {
+            animation-delay: 1s;
+            top: -25px;
+            right: -15px;
+        }
+
+        .particle:nth-child(3) {
+            animation-delay: 2s;
+            bottom: -20px;
+            left: 0;
+        }
+
+        .icon-orbit {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 80px;
+            height: 80px;
+            border: 2px solid var(--accent-primary);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.3;
+            animation: rotate 4s linear infinite;
+        }
+
+        .orbit-dot {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: var(--accent-success);
+            border-radius: 50%;
+            top: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .orbit-dot:nth-child(2) {
+            top: auto;
+            bottom: -4px;
+        }
+
+        @keyframes iconBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes particleFloat {
+            0%, 100% { transform: translateY(0) scale(1); opacity: 1; }
+            50% { transform: translateY(-15px) scale(1.2); opacity: 0.7; }
+        }
+
+        @keyframes rotate {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        /* Card Content */
+        .card-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .card-description {
+            color: var(--text-secondary);
+            text-align: center;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .card-features {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .feature-icon {
+            font-size: 1.2rem;
+        }
+
+        /* Input Section */
+        .input-section {
+            margin-bottom: 2rem;
+        }
+
+        .input-wrapper {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .stream-input {
+            width: 100%;
+            padding: 18px 50px 18px 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 15px;
+            font-size: 1rem;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
+        .stream-input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .stream-input:focus + .input-glow {
+            opacity: 1;
+            transform: scale(1.02);
+        }
+
+        .input-glow {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-success));
+            border-radius: 15px;
+            opacity: 0;
+            z-index: -1;
+            transition: all 0.3s ease;
+            filter: blur(10px);
+        }
+
+        .input-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+        }
+
+        /* Join Options */
+        .join-options {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        /* Enhanced Buttons */
+        .stream-btn {
+            flex: 1;
+            min-width: 200px;
+            padding: 16px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .primary-btn {
+            background: linear-gradient(135deg, var(--accent-primary), #764ba2);
+            color: white;
+            width: 100%;
+        }
+
+        .success-btn {
+            background: linear-gradient(135deg, var(--accent-success), #059669);
+            color: white;
+        }
+
+        .secondary-btn {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+        }
+
+        .stream-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+
+        .stream-btn:hover .btn-icon {
+            transform: translateX(5px);
+        }
+
+        .stream-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .btn-text {
+            transition: transform 0.3s ease;
+        }
+
+        .btn-icon {
+            transition: transform 0.3s ease;
+        }
+
+        .btn-ripple {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+            transform: scale(0);
+            transition: transform 0.6s ease;
+            pointer-events: none;
+        }
+
+        .stream-btn:active .btn-ripple {
+            transform: scale(1);
+        }
+
+        /* Security Banner */
+        .security-banner {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-success));
+            border-radius: 20px;
+            padding: 2rem;
+            animation: slideInUp 0.8s ease-out 0.6s both;
+        }
+
+        .security-content {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .security-icon {
+            font-size: 3rem;
+            animation: pulse 2s infinite;
+        }
+
+        .security-text {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .security-text h4 {
+            color: white;
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .security-text p {
+            color: rgba(255, 255, 255, 0.9);
+            margin: 0;
+        }
+
+        .security-badges {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .stream-section {
+                padding: 3rem 1rem;
+            }
+
+            .stream-options-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .stream-card {
+                padding: 2rem;
+            }
+
+            .join-options {
+                flex-direction: column;
+            }
+
+            .stream-btn {
+                min-width: auto;
+                width: 100%;
+            }
+
+            .security-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 1.5rem;
+            }
+
+            .security-badges {
+                justify-content: center;
+            }
+
+            .floating-element {
+                width: 40px;
+                height: 40px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stream-card {
+                padding: 1.5rem;
+            }
+
+            .main-icon {
+                font-size: 3rem;
+            }
+
+            .card-title {
+                font-size: 1.5rem;
+            }
+
+            .stream-title {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Loading Screen -->
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <nav class="nav container">
+            <a href="#" class="logo">🛡️ StreamVault</a>
+            <ul class="nav-links">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#security">Security</a></li>
+                <li><a href="#about">About</a></li>
+                <li>
+                    <button class="theme-toggle" id="themeToggle">
+                        <span class="theme-icon">🌙</span>
+                    </button>
+                </li>
+            </ul>
+            <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
+        </nav>
+    </header>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+        <div class="mobile-menu-header">
+            <a href="#" class="logo">🛡️ StreamVault</a>
+            <button class="mobile-menu-close" id="mobileMenuClose">✕</button>
+        </div>
+        <ul class="mobile-nav-links">
+            <li><a href="#features">Features</a></li>
+            <li><a href="#security">Security</a></li>
+            <li><a href="#about">About</a></li>
+            <li>
+                <button class="theme-toggle" id="mobileThemeToggle">
+                    <span class="theme-icon">🌙</span>
+                    <span>Toggle Theme</span>
+                </button>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero container">
+        <h1>Secure Web3 Video Streaming</h1>
+        <p>Experience the future of decentralized video communication with military-grade encryption and blockchain security.</p>
+        
+        <div class="security-badge">
+            🔒 End-to-End Encrypted • Web3 Powered • Zero Trust Architecture
+        </div>
+
+        <!-- Features Grid -->
+        <div class="features-grid">
+            <div class="feature-card" style="--delay: 0s">
+                <div class="feature-icon">🔐</div>
+                <h3>Military-Grade Security</h3>
+                <p>Advanced encryption protocols protect your streams from unauthorized access</p>
+            </div>
+            <div class="feature-card" style="--delay: 0.2s">
+                <div class="feature-icon">⛓️</div>
+                <h3>Blockchain Verified</h3>
+                <p>Decentralized identity verification ensures authentic participants only</p>
+            </div>
+            <div class="feature-card" style="--delay: 0.4s">
+                <div class="feature-icon">🚀</div>
+                <h3>Ultra-Low Latency</h3>
+                <p>Real-time streaming with minimal delay for seamless communication</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="main-content container">
+        <div class="content-section">
+            <h2 class="section-title">Start Your Secure Stream</h2>
+            
+            <!-- Enhanced Full-Width Stream Section -->
+            <div class="stream-section-wrapper">
+                <div class="stream-section">
+                    <div class="stream-content">
+                        <!-- Animated Background Elements -->
+                        <div class="bg-elements">
+                            <div class="floating-element" style="--delay: 0s; --x: 10%; --y: 20%;"></div>
+                            <div class="floating-element" style="--delay: 2s; --x: 80%; --y: 60%;"></div>
+                            <div class="floating-element" style="--delay: 4s; --x: 60%; --y: 10%;"></div>
+                            <div class="floating-element" style="--delay: 1s; --x: 20%; --y: 80%;"></div>
+                            <div class="floating-element" style="--delay: 3s; --x: 90%; --y: 30%;"></div>
+                        </div>
+
+                        <!-- Section Header -->
+                        <div class="stream-header">
+                            <h2 class="stream-title">Start Your Secure Stream</h2>
+                            <p class="stream-subtitle">Choose how you want to join the decentralized streaming experience</p>
+                            <div class="title-underline"></div>
+                        </div>
+
+                        <!-- Stream Options Grid -->
+                        <div class="stream-options-grid">
+                            <!-- Create Stream Card -->
+                            <div class="stream-card create-card">
+                                <div class="card-glow"></div>
+                                <div class="card-content">
+                                    <div class="card-icon">
+                                        <div class="icon-wrapper">
+                                            <span class="main-icon">🎥</span>
+                                            <div class="icon-particles">
+                                                <span class="particle"></span>
+                                                <span class="particle"></span>
+                                                <span class="particle"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <h3 class="card-title">Create Live Stream</h3>
+                                    <p class="card-description">Start hosting your own secure Web3-powered live stream with military-grade encryption</p>
+                                    <div class="card-features">
+                                        <div class="feature-item">
+                                            <span class="feature-icon">🔒</span>
+                                            <span>End-to-End Encrypted</span>
+                                        </div>
+                                        <div class="feature-item">
+                                            <span class="feature-icon">⛓️</span>
+                                            <span>Blockchain Verified</span>
+                                        </div>
+                                        <div class="feature-item">
+                                            <span class="feature-icon">👑</span>
+                                            <span>Full Host Control</span>
+                                        </div>
+                                    </div>
+                                    <button id="createLiveStreamBtn" class="stream-btn primary-btn">
+                                        <span class="btn-text">Create Stream</span>
+                                        <span class="btn-icon">→</span>
+                                        <div class="btn-ripple"></div>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Join Stream Card -->
+                            <div class="stream-card join-card">
+                                <div class="card-glow"></div>
+                                <div class="card-content">
+                                    <div class="card-icon">
+                                        <div class="icon-wrapper">
+                                            <span class="main-icon">🚀</span>
+                                            <div class="icon-orbit">
+                                                <span class="orbit-dot"></span>
+                                                <span class="orbit-dot"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <h3 class="card-title">Join Existing Stream</h3>
+                                    <p class="card-description">Connect to an ongoing secure stream using your unique stream identifier</p>
+                                    
+                                    <div class="input-section">
+                                        <div class="input-wrapper">
+                                            <input type="text" id="streamIdText" placeholder="Enter Stream ID" class="stream-input" />
+                                            <div class="input-glow"></div>
+                                            <span class="input-icon">🔑</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="join-options">
+                                        <button id="joinHostBtn" class="stream-btn success-btn">
+                                            <span class="btn-text">Join as Co-Host</span>
+                                            <span class="btn-icon">🎤</span>
+                                            <div class="btn-ripple"></div>
+                                        </button>
+                                        <button id="joinAudienceBtn" class="stream-btn secondary-btn">
+                                            <span class="btn-text">Join as Viewer</span>
+                                            <span class="btn-icon">👁️</span>
+                                            <div class="btn-ripple"></div>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Security Banner -->
+                        <div class="security-banner">
+                            <div class="security-content">
+                                <div class="security-icon">🛡️</div>
+                                <div class="security-text">
+                                    <h4>Military-Grade Security</h4>
+                                    <p>All streams are protected with AES-256 encryption and blockchain verification</p>
+                                </div>
+                                <div class="security-badges">
+                                    <span class="badge">Zero-Trust</span>
+                                    <span class="badge">Web3</span>
+                                    <span class="badge">Encrypted</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Text Messages Display -->
+            <div id="textDiv"></div>
+
+            <!-- Enhanced Grid Screen (Hidden by default) -->
+            <div id="grid-screen" style="display: none">
+                <!-- Meeting Header -->
+                <div class="meeting-header">
+                    <h3 id="heading">
+                        <span class="live-indicator"></span>
+                        Live Stream Active
+                    </h3>
+                    <div class="meeting-status">
+                        <span class="live-indicator"></span>
+                        Broadcasting
+                    </div>
+                </div>
+
+                <!-- Meeting Controls -->
+                <div class="meeting-controls">
+                    <div id="controls">
+                        <div class="control-group">
+                            <button id="toggleMicBtn" class="btn btn-secondary" style="display: none">🎤 Mic</button>
+                            <button id="toggleWebCamBtn" class="btn btn-secondary" style="display: none">📹 Camera</button>
+                        </div>
+                        <div class="control-group">
+                            <button id="switchModeBtn" class="btn btn-primary"></button>
+                        </div>
+                        <div class="control-group">
+                            <button id="leaveBtn" class="btn btn-danger">🚪 Leave Stream</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Video Section -->
+                <div class="video-section">
+                    <div id="videoContainer">
+                        <div class="video-placeholder">
+                            <div class="video-placeholder-icon">🎬</div>
+                            <h3>Waiting for participants...</h3>
+                            <p>Video streams will appear here once participants join the secure session</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Meeting Info -->
+                <div class="meeting-info">
+                    <div class="meeting-details">
+                        <div class="detail-item">
+                            <span class="detail-icon">👥</span>
+                            <span>0 Participants</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-icon">🔒</span>
+                            <span>End-to-End Encrypted</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-icon">⛓️</span>
+                            <span>Blockchain Verified</span>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-icon">🕒</span>
+                        <span id="streamDuration">00:00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 StreamVault. Powered by Web3 Technology. Your privacy is our priority.</p>
+            <div style="margin-top: 1rem;">
+                <span style="font-size: 0.9rem;">🛡️ Secured by Blockchain • 🔒 Zero-Knowledge Architecture • 🌐 Decentralized Infrastructure</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://sdk.videosdk.live/js-sdk/0.1.6/videosdk.js"></script>
+    <script src="config.js"></script>
+    <script src="index.js"></script>
+
+    <script>
+        // Theme Management
+        class ThemeManager {
+            constructor() {
+                this.theme = localStorage.getItem('theme') || 'light';
+                this.init();
+            }
+
+            init() {
+                this.setTheme(this.theme);
+                this.bindEvents();
+            }
+
+            setTheme(theme) {
+                this.theme = theme;
+                document.documentElement.setAttribute('data-theme', theme);
+                localStorage.setItem('theme', theme);
+                this.updateThemeIcons();
+            }
+
+            toggleTheme() {
+                const newTheme = this.theme === 'light' ? 'dark' : 'light';
+                this.setTheme(newTheme);
+            }
+
+            updateThemeIcons() {
+                const icons = document.querySelectorAll('.theme-icon');
+                const icon = this.theme === 'light' ? '🌙' : '☀️';
+                icons.forEach(iconEl => {
+                    iconEl.textContent = icon;
+                });
+            }
+
+            bindEvents() {
+                const toggles = document.querySelectorAll('.theme-toggle');
+                toggles.forEach(toggle => {
+                    toggle.addEventListener('click', () => {
+                        toggle.classList.add('active');
+                        setTimeout(() => toggle.classList.remove('active'), 300);
+                        this.toggleTheme();
+                    });
+                });
+            }
+        }
+
+        // Mobile Menu Management
+        class MobileMenu {
+            constructor() {
+                this.menu = document.getElementById('mobileMenu');
+                this.openBtn = document.getElementById('mobileMenuBtn');
+                this.closeBtn = document.getElementById('mobileMenuClose');
+                this.init();
+            }
+
+            init() {
+                this.bindEvents();
+            }
+
+            open() {
+                this.menu.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+
+            close() {
+                this.menu.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+
+            bindEvents() {
+                this.openBtn.addEventListener('click', () => this.open());
+                this.closeBtn.addEventListener('click', () => this.close());
+                
+                // Close on link click
+                const links = this.menu.querySelectorAll('a');
+                links.forEach(link => {
+                    link.addEventListener('click', () => this.close());
+                });
+
+                // Close on outside click
+                this.menu.addEventListener('click', (e) => {
+                    if (e.target === this.menu) {
+                        this.close();
+                    }
+                });
+            }
+        }
+
+        // Meeting Management
+        class MeetingManager {
+            constructor() {
+                this.startTime = null;
+                this.durationInterval = null;
+                this.participantCount = 0;
+                this.init();
+            }
+
+            init() {
+                this.bindEvents();
+            }
+
+            startMeeting() {
+                this.startTime = new Date();
+                this.updateDuration();
+                this.durationInterval = setInterval(() => {
+                    this.updateDuration();
+                }, 1000);
+            }
+
+            endMeeting() {
+                if (this.durationInterval) {
+                    clearInterval(this.durationInterval);
+                    this.durationInterval = null;
+                }
+                this.startTime = null;
+            }
+
+            updateDuration() {
+                if (!this.startTime) return;
+                
+                const now = new Date();
+                const diff = now - this.startTime;
+                const minutes = Math.floor(diff / 60000);
+                const seconds = Math.floor((diff % 60000) / 1000);
+                
+                const durationEl = document.getElementById('streamDuration');
+                if (durationEl) {
+                    durationEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                }
+            }
+
+            addParticipant(name, hasVideo = false, hasAudio = false) {
+                this.participantCount++;
+                this.updateParticipantCount();
+                this.createVideoSlot(name, hasVideo, hasAudio);
+            }
+
+            removeParticipant() {
+                this.participantCount = Math.max(0, this.participantCount - 1);
+                this.updateParticipantCount();
+            }
+
+            updateParticipantCount() {
+                const countEl = document.querySelector('.detail-item span:contains("Participants")');
+                if (countEl) {
+                    countEl.textContent = `${this.participantCount} Participants`;
+                }
+            }
+
+            createVideoSlot(name, hasVideo, hasAudio) {
+                const container = document.getElementById('videoContainer');
+                const placeholder = container.querySelector('.video-placeholder');
+                
+                if (placeholder) {
+                    placeholder.remove();
+                }
+
+                const slot = document.createElement('div');
+                slot.className = 'video-slot';
+                slot.innerHTML = `
+                    <div class="participant-info">
+                        <span class="participant-name">${name}</span>
+                        <div class="participant-status">
+                            <div class="status-icon ${hasAudio ? 'mic-on' : 'mic-off'}">🎤</div>
+                            <div class="status-icon ${hasVideo ? 'cam-on' : 'cam-off'}">📹</div>
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(slot);
+            }
+
+            bindEvents() {
+                // Simulate adding participants for demo
+                document.getElementById('createLiveStreamBtn')?.addEventListener('click', () => {
+                    setTimeout(() => {
+                        this.startMeeting();
+                        this.addParticipant('You (Host)', true, true);
+                    }, 1000);
+                });
+
+                document.getElementById('joinHostBtn')?.addEventListener('click', () => {
+                    setTimeout(() => {
+                        this.startMeeting();
+                        this.addParticipant('You (Co-Host)', true, true);
+                    }, 1000);
+                });
+
+                document.getElementById('joinAudienceBtn')?.addEventListener('click', () => {
+                    setTimeout(() => {
+                        this.startMeeting();
+                        this.addParticipant('You (Viewer)', false, false);
+                    }, 1000);
+                });
+
+                document.getElementById('leaveBtn')?.addEventListener('click', () => {
+                    this.endMeeting();
+                });
+            }
+        }
+
+        // Scroll Animations
+        class ScrollAnimations {
+            constructor() {
+                this.observer = null;
+                this.init();
+            }
+
+            init() {
+                this.createObserver();
+                this.observeElements();
+            }
+
+            createObserver() {
+                const options = {
+                    threshold: 0.1,
+                    rootMargin: '0px 0px -50px 0px'
+                };
+
+                this.observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('revealed');
+                        }
+                    });
+                }, options);
+            }
+
+            observeElements() {
+                const elements = document.querySelectorAll('.scroll-reveal');
+                elements.forEach(el => {
+                    this.observer.observe(el);
+                });
+            }
+        }
+
+        // Loading Screen
+        class LoadingScreen {
+            constructor() {
+                this.loading = document.getElementById('loading');
+                this.init();
+            }
+
+            init() {
+                // Hide loading screen after page load
+                window.addEventListener('load', () => {
+                    setTimeout(() => {
+                        this.hide();
+                    }, 1000);
+                });
+            }
+
+            hide() {
+                this.loading.classList.add('hidden');
+                setTimeout(() => {
+                    this.loading.style.display = 'none';
+                }, 500);
+            }
+        }
+
+        // Button Animations
+        class ButtonAnimations {
+            constructor() {
+                this.init();
+            }
+
+            init() {
+                const buttons = document.querySelectorAll('.btn');
+                buttons.forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        this.createRipple(e, btn);
+                    });
+                });
+            }
+
+            createRipple(event, button) {
+                const ripple = document.createElement('span');
+                const rect = button.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                const x = event.clientX - rect.left - size / 2;
+                const y = event.clientY - rect.top - size / 2;
+
+                ripple.style.cssText = `
+                    position: absolute;
+                    width: ${size}px;
+                    height: ${size}px;
+                    left: ${x}px;
+                    top: ${y}px;
+                    background: rgba(255, 255, 255, 0.3);
+                    border-radius: 50%;
+                    transform: scale(0);
+                    animation: ripple 0.6s linear;
+                    pointer-events: none;
+                `;
+
+                button.style.position = 'relative';
+                button.style.overflow = 'hidden';
+                button.appendChild(ripple);
+
+                setTimeout(() => {
+                    ripple.remove();
+                }, 600);
+            }
+        }
+
+        // Smooth Scrolling
+        class SmoothScroll {
+            constructor() {
+                this.init();
+            }
+
+            init() {
+                const links = document.querySelectorAll('a[href^="#"]');
+                links.forEach(link => {
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const target = document.querySelector(link.getAttribute('href'));
+                        if (target) {
+                            target.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'start'
+                            });
+                        }
+                    });
+                });
+            }
+        }
+
+        // Initialize all components
+        document.addEventListener('DOMContentLoaded', () => {
+            new ThemeManager();
+            new MobileMenu();
+            new MeetingManager();
+            new ScrollAnimations();
+            new LoadingScreen();
+            new ButtonAnimations();
+            new SmoothScroll();
+
+            // Add ripple animation CSS
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes ripple {
+                    to {
+                        transform: scale(4);
+                        opacity: 0;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+
+            // Add floating animation to feature icons
+            const featureIcons = document.querySelectorAll('.feature-icon');
+            featureIcons.forEach((icon, index) => {
+                icon.style.animation = `float 3s ease-in-out infinite`;
+                icon.style.animationDelay = `${index * 0.5}s`;
+            });
+        });
+
+        // Add CSS for floating animation
+        const floatStyle = document.createElement('style');
+        floatStyle.textContent = `
+            @keyframes float {
+                0%, 100% {
+                    transform: translateY(0px);
+                }
+                50% {
+                    transform: translateY(-10px);
+                }
+            }
+        `;
+        document.head.appendChild(floatStyle);
+    </script>
+</body>
+
+</html>
